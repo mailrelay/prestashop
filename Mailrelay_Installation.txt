@@ -1,0 +1,79 @@
+--------------------------------------------------------
+------ Installing MailRelay plugin for Prestashop -------
+--------------------------------------------------------
+
+The installation of the MailRelay plugin product for Prestashop is very simple. It only takes a few steps to do it.
+
+After installing the extension a new menu will appear on the left panel, this menu will let you sync all your Prestashop users with your Mailrelay account.
+This will save you time when syncing and organizing your users in groups.
+
+Let's start with the installation process:
+
+-------------------
+First required step
+-------------------
+
+The first step, in order for us to be able to use the extension, is to enable the API key of our Mailrelay account. For that we need to log in our Mailrelay account
+admin panel. Once we are there we will go to the "Settings" menu, then "API access". On that screen click on the "Generate new API key" button.
+It's not necessary for us to write down this key, once it's generated, the extension will be able to get it using your user and password data.
+
+----------------------------------------
+Upload the necessary files to the server
+----------------------------------------
+
+The Mailrelay plugins comes into a .zip file. To upload it we will go to option "Modules". Then you click on the Upload tab that will allow you to
+install a plugin from archive. A file box will appear where you can upload the mailrelay zip file. The plugin will be uploaded to the System and installed.
+Please note that you have to give write access to your "modules" folder.
+
+---------------------------------------
+Installation from Prestashop admin panel
+---------------------------------------
+
+Once we have uploaded all the required files, we need to do some configs from the admin panel:
+
+- We will go to the "Modules" option
+- We will search for the Mailrelay plugin
+- If it shows it's deactivated, we click on "Enable" to enable it
+
+This finishes the installation process.
+
+-------------------------
+Configuring the extension
+-------------------------
+
+Once the extension is installed we will have a new settings option. We will go to Settings > Mailrelay option.
+Clicking on this option will take us to a form where we need to fill the following data:
+
+- Host (this can be found in your Mailrelay welcome email). Please note that the host must be entered without initial http://
+- API key (the API key generated for our Mailrelay account)
+
+Once this data is successfully saved we can start the user sync.
+
+----------
+Sync users
+----------
+
+After the configuration we can select the groups of our Mailrelay account that must be sync with the Prestashop users. We will click them and will press the "Start Sync" button.
+
+We will see the following screen, that simply shows us the sync process. It shows the total users synced.
+
+[ NOTE: Depending on the number of users to sync, the process can take from some seconds to several minutes. ]
+
+---------
+Uninstall
+---------
+
+Uninstalling the extension is as easy as installing it. You only have to go to "Modules".
+You must search for the Mailrelay module and click on "Disable". Selecting this option, the extension will be disabled.
+To delete the files use option "Delete".
+
+----------------
+Additional notes
+----------------
+- This extension has been tested using Prestashop 1.5.4.0
+
+- This software is provided by the copyright holders and contributors "AS IS" and any express or implied warranties, including, but not limited to,
+the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the copyright owner or contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data or profits,
+or bussiness interruption) however caused and on any theory of liability, wether in contract, strict liability, or tort (including negligence or otherwise) arising in any
+way out of the use of this software, even if advised of the possibility of such damage.
