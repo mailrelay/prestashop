@@ -4,7 +4,7 @@
 
 The installation of the MailRelay plugin product for Prestashop is very simple. It only takes a few steps to do it.
 
-After installing the extension a new menu will appear on the left panel, this menu will let you sync all your Prestashop users with your Mailrelay account.
+After installing the extension a new option "Advanced Parameters -> Mailrelay" appears, this option will let you sync all your Prestashop users with your Mailrelay account.
 This will save you time when syncing and organizing your users in groups.
 
 Let's start with the installation process:
