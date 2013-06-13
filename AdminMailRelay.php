@@ -191,8 +191,8 @@ class AdminMailRelay extends ModuleAdminController {
      */
     protected function _saveCredential(Zend_Config $data) {
         global $smarty;
-        $hostname = Db::getInstance()->escape($data->mailrelay_hostname);
-        $apiKey = Db::getInstance()->escape($data->mailrelay_key);
+        $hostname = trim(Db::getInstance()->escape($data->mailrelay_hostname));
+        $apiKey = trim(Db::getInstance()->escape($data->mailrelay_key));
 
         if (empty($hostname) || empty($apiKey)) {
             $this->_showMessage($this->_('please_fill_in_all_required_fields'), 'error');
@@ -278,11 +278,12 @@ class AdminMailRelay extends ModuleAdminController {
      * @return Zend_Http_Client
      */
     protected function _getClient($hostName, $apiKey = null) {
-        $uri = Zend_Uri_Http::fromString('http://example.com/ccm/admin/api/version/2/&type=json');
+        $uri = Zend_Uri_Http::fromString('https://example.com/ccm/admin/api/version/2/&type=json');
         $uri->setHost($hostName);
 
-        $client = new Zend_Http_Client();
-        $client->setUri($uri);
+        $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSLVERSION => 3));
+
+        $client = new Zend_Http_Client($uri, $config);
 
         if ($apiKey)
             $client->setParameterPost('apiKey', $apiKey);
