@@ -44,7 +44,7 @@ class AdminMailRelay extends ModuleAdminController {
                     $params->mailrelay_key = $result['key'];
                 }
             } elseif ('sync' == $params->mailrelay_option) {
-                $result = $this->_sync($params, $this->_getCredentials());
+                die(json_encode($this->_sync($params, $this->_getCredentials(), (int)$_REQUEST['start'])));
             }
         }
 
@@ -89,6 +89,7 @@ class AdminMailRelay extends ModuleAdminController {
             }
         }
 
+        $smarty->assign('please_select_a_group', $this->_('please_select_a_group'));
         $smarty->assign('mailrelay_groups_options', $options);
         $smarty->assign('mailrelay_groups_option_selected', $credentials['last_group']);
     }
@@ -110,78 +111,95 @@ class AdminMailRelay extends ModuleAdminController {
         return $row;
     }
 
-    protected function _sync(Zend_Config $data, $credential) {
+    protected function _sync(Zend_Config $data, $credential, $start = 0) {
+        $response = new stdclass();
+        $response->status = 'OK';
+        $response->message = '';
+        $response->completed = false;
+        $response->customersCount = 0;
         $group = abs((int) $data->mailrelay_group);
         if ($group) {
             $db_prefix = _DB_PREFIX_;
-            $summary['total'] = 0;
-            $summary['new'] = 0;
-            $summary['updated'] = 0;
-            $summary['failed'] = 0;
+            @session_start();
+            if ($start == 0) {
+                $_SESSION['summary'] = array();
+                $_SESSION['summary']['total'] = 0;
+                $_SESSION['summary']['new'] = 0;
+                $_SESSION['summary']['updated'] = 0;
+                $_SESSION['summary']['failed'] = 0;
+                $sql = "SELECT COUNT(*) AS `customersCount` FROM `{$db_prefix}customer` WHERE `newsletter` = 1";
+                $rowset = Db::getInstance()->executeS($sql);
+                $_SESSION['customersCount'] = (int)$rowset[0]['customersCount'];
+            }
+
+            $response->customersCount = $_SESSION['customersCount'];
 
             $client = $this->_getClient($credential['hostname'], $credential['key']);
 
             $data->mailrelay_group;
-            $sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1";
+            //$sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 1";// debug mode
+            $sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 10";
             $rowset = Db::getInstance()->executeS($sql);
-            foreach($rowset as $row) {
-                $name = "{$row['firstname']} {$row['lastname']}";
-                $email = $row['email'];
+            if (!empty($rowset)) {
+                foreach($rowset as $row) {$response->message=$row['email'];
+                    $name = "{$row['firstname']} {$row['lastname']}";
+                    $email = $row['email'];
 
-                $params = array();
-                $params['email'] = $email;
-                $result = $this->_execute($client, 'getSubscribers', $params);
+                    $params = array();
+                    $params['email'] = $email;
+                    $result = $this->_execute($client, 'getSubscribers', $params);
 
-                if ($result) {
-                    $summary['total']++;
+                    if ($result) {
+                        $_SESSION['summary']['total']++;
 
-                    if (! count($result['data'])) {
-                        $params['name'] = $name;
-                        $params['groups'] = array(
-                                $group
-                       );
-                        $result = $this->_execute($client, 'addSubscriber', $params);
+                        if (! count($result['data'])) {
+                            $params['name'] = $name;
+                            $params['groups'] = array(
+                                    $group
+                           );
+                            $result = $this->_execute($client, 'addSubscriber', $params);
 
-                        if ($result && 1 == $result['status'])
-                            $summary['new'] ++;
-                        else
-                        {
-                            $summary['failed'] ++;
+                            if ($result && 1 == $result['status'])
+                                $_SESSION['summary']['new'] ++;
+                            else
+                            {
+                                $_SESSION['summary']['failed'] ++;
+                            }
+                        } else {
+                            $params['id'] = $result['data'][0]['id'];
+                            $params['name'] = $name;
+                            $params['groups'] = array(
+                                    $group
+                           );
+                            $result = $this->_execute($client, 'updateSubscriber', $params);
+
+                            if ($result && 1 == $result['status'])
+                                $_SESSION['summary']['updated'] ++;
+                            else
+                            {
+                                $_SESSION['summary']['failed'] ++;
+                            }
                         }
                     } else {
-                        $params['id'] = $result['data'][0]['id'];
-                        $params['name'] = $name;
-                        $params['groups'] = array(
-                                $group
-                       );
-                        $result = $this->_execute($client, 'updateSubscriber', $params);
-
-                        if ($result && 1 == $result['status'])
-                            $summary['updated'] ++;
-                        else
-                        {
-                            $summary['failed'] ++;
-                        }
+                        $_SESSION['summary']['failed'] ++;
                     }
-                } else {
-                    $summary['failed'] ++;
                 }
+            } else {
+                $response->message .= "{$this->_('total_subscribers')}:({$_SESSION['summary']['total']})<br />";
+                $response->message .= "{$this->_('new_subscribers')}:({$_SESSION['summary']['new']})<br />";
+                $response->message .= "{$this->_('updated_subscribers')}:({$_SESSION['summary']['updated']})<br />";
+                $response->message .= "{$this->_('failed_subscribers')}:({$_SESSION['summary']['failed']})<br />";
+                $response->completed = true;
+
+                // update the last selected group
+                $sql = "UPDATE `{$db_prefix}mailrelay` SET last_group = $group";
+                Db::getInstance()->execute($sql);
             }
-
-            // update the last selected group
-            $sql = "UPDATE `{$db_prefix}mailrelay` SET last_group = $group";
-            Db::getInstance()->execute($sql);
-
-            $message = '';
-            $message .= "{$this->_('total_subscribers')}:({$summary['total']})<br />";
-            $message .= "{$this->_('new_subscribers')}:({$summary['new']})<br />";
-            $message .= "{$this->_('updated_subscribers')}:({$summary['updated']})<br />";
-            $message .= "{$this->_('failed_subscribers')}:({$summary['failed']})<br />";
-
-            $this->_showMessage($message, 'conf');
         } else {
-            $this->_showMessage($this->_('please_select_a_group'), 'error');
+            $response->status = 'ERROR';
+            $response->message = $this->_('please_select_a_group');
         }
+        return $response;
     }
 
     /**
