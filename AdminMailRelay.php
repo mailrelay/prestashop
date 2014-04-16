@@ -196,7 +196,7 @@ class AdminMailRelay extends ModuleAdminController {
                 Db::getInstance()->execute($sql);
             }
         } else {
-            $response->status = 'ERROR';
+            $response->status = 'danger';
             $response->message = $this->_('please_select_a_group');
         }
         return $response;
@@ -213,13 +213,13 @@ class AdminMailRelay extends ModuleAdminController {
         $apiKey = trim(Db::getInstance()->escape($data->mailrelay_key));
 
         if (empty($hostname) || empty($apiKey)) {
-            $this->_showMessage($this->_('please_fill_in_all_required_fields'), 'error');
+            $this->_showMessage($this->_('please_fill_in_all_required_fields'), 'danger');
             return false;
         }
 
         $validate = new Zend_Validate_Hostname();
         if (! $validate->isValid($hostname)) {
-            $this->_showMessage($this->_('please_provide_a_valid_hostname'), 'error');
+            $this->_showMessage($this->_('please_provide_a_valid_hostname'), 'danger');
             return false;
         }
 
@@ -233,23 +233,23 @@ class AdminMailRelay extends ModuleAdminController {
                 $flag = Db::getInstance()->execute($sql);
                 if (!$flag)
                 {
-                    $this->_showMessage(Db::getInstance()->getMsgError(), 'error');
+                    $this->_showMessage(Db::getInstance()->getMsgError(), 'danger');
                     return false;
                 }
 
-                $this->_showMessage($this->_('your_credentials_have_been_saved'), 'conf');
+                $this->_showMessage($this->_('your_credentials_have_been_saved'), 'success');
             } else {
                 $sql = "INSERT INTO `{$db_prefix}mailrelay`(`id`, `hostname`, `key`, `last_group`) VALUES(NULL, '$hostname', '$apiKey', 0)";
                 $flag = Db::getInstance()->execute($sql);
 
                 if (!$flag)
                 {
-                    $this->_showMessage(Db::getInstance()->getMsgError(), 'error');
+                    $this->_showMessage(Db::getInstance()->getMsgError(), 'danger');
                     return false;
                 }
 
                 $id = Db::getInstance()->Insert_ID();
-                $this->_showMessage($this->_('your_credentials_have_been_saved'), 'conf');
+                $this->_showMessage($this->_('your_credentials_have_been_saved'), 'success');
             }
 
             return array(
@@ -258,7 +258,7 @@ class AdminMailRelay extends ModuleAdminController {
                 'key' => $apiKey
             );
         } catch(Exception $e) {
-            $this->_showMessage(sprintf($this->_('unable_to_connect_to'), $hostname), 'error');
+            $this->_showMessage(sprintf($this->_('unable_to_connect_to'), $hostname), 'danger');
             return false;
         }
     }
