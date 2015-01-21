@@ -320,6 +320,8 @@ class AdminMailRelay extends ModuleAdminController {
         $result = null;
         $client->setParameterPost('function', $function);
 
+        $client->setHeaders('X-Request-Origin: Prestashop|1.11|'. _PS_VERSION_);
+
         foreach($params as $key => $value)
             $client->setParameterPost($key, $value);
 

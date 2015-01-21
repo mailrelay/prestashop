@@ -10,7 +10,7 @@ class MailRelay extends Module
     {
         $this->name = 'mailrelay';
         $this->tab = 'administration';
-        $this->version = 1.1;
+        $this->version = 1.11;
         $this->author = '';
         $this->need_instance = 0;
 
