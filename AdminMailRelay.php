@@ -78,9 +78,8 @@ class AdminMailRelay extends ModuleAdminController {
        );
 
         if ($credentials) {
-            $client = $this->_getClient($credentials['hostname'], $credentials['key']);
             $params['enable'] = true;
-            $result = $this->_execute($client, 'getGroups', $params);
+            $result = $this->_execute($credentials['hostname'], $credentials['key'], 'getGroups', $params);
 
             if ($result && $result['status']) {
                 foreach($result['data'] as $item) {
@@ -134,8 +133,6 @@ class AdminMailRelay extends ModuleAdminController {
 
             $response->customersCount = $_SESSION['customersCount'];
 
-            $client = $this->_getClient($credential['hostname'], $credential['key']);
-
             $data->mailrelay_group;
             //$sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 1";// debug mode
             $sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 10";
@@ -147,7 +144,7 @@ class AdminMailRelay extends ModuleAdminController {
 
                     $params = array();
                     $params['email'] = $email;
-                    $result = $this->_execute($client, 'getSubscribers', $params);
+                    $result = $this->_execute($credential['hostname'], $credential['key'], 'getSubscribers', $params);
 
                     if ($result) {
                         $_SESSION['summary']['total']++;
@@ -157,7 +154,7 @@ class AdminMailRelay extends ModuleAdminController {
                             $params['groups'] = array(
                                     $group
                            );
-                            $result = $this->_execute($client, 'addSubscriber', $params);
+                            $result = $this->_execute($credential['hostname'], $credential['key'], 'addSubscriber', $params);
 
                             if ($result && 1 == $result['status'])
                                 $_SESSION['summary']['new'] ++;
@@ -171,7 +168,7 @@ class AdminMailRelay extends ModuleAdminController {
                             $params['groups'] = array(
                                     $group
                            );
-                            $result = $this->_execute($client, 'updateSubscriber', $params);
+                            $result = $this->_execute($credential['hostname'], $credential['key'], 'updateSubscriber', $params);
 
                             if ($result && 1 == $result['status'])
                                 $_SESSION['summary']['updated'] ++;
@@ -291,39 +288,26 @@ class AdminMailRelay extends ModuleAdminController {
 
     /**
      *
-     * @param string $hostName
+     * @param string $hostname
      * @param string $apiKey
-     * @return Zend_Http_Client
-     */
-    protected function _getClient($hostName, $apiKey = null) {
-        $uri = Zend_Uri_Http::fromString('https://example.com/ccm/admin/api/version/2/&type=json');
-        $uri->setHost($hostName);
-
-        $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSLVERSION => 3));
-
-        $client = new Zend_Http_Client($uri, $config);
-
-        if ($apiKey)
-            $client->setParameterPost('apiKey', $apiKey);
-
-        return $client;
-    }
-
-    /**
-     *
-     * @param Zend_Http_Client $client
      * @param string $function
      * @param array $params
      * @return array null
      */
-    protected function _execute(Zend_Http_Client $client, $function, array $params = array()) {
+    protected function _execute($hostname, $apiKey, $function, array $params = array()) {
         $result = null;
-        $client->setParameterPost('function', $function);
 
+        $uri = Zend_Uri_Http::fromString('https://example.com/ccm/admin/api/version/2/&type=json');
+        $uri->setHost($hostname);
+
+        $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSLVERSION => 3));
+
+        $client = new Zend_Http_Client($uri, $config);
         $client->setHeaders('X-Request-Origin: Prestashop|1.11|'. _PS_VERSION_);
 
-        foreach($params as $key => $value)
-            $client->setParameterPost($key, $value);
+        $params['function'] = $function;
+        $params['apiKey'] = $apiKey;
+        $client->setParameterPost($params);
 
         $response = $client->request(Zend_Http_Client::POST);
 
