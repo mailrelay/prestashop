@@ -77,7 +77,7 @@ var syncGroups = function() {
             <div style="clear:both;padding-top:15px;text-align:left">
                 <label style="width:60px">{$lang.hostname}:</label> <div style="padding-left:80px"><input type="text" name="mailrelay_hostname" size="40" value="{$mailrelay_hostname|escape}" /></div>
                 <br />
-                <label style="width:60px">{$lang.key}:</label> <div style="padding-left:80px"><input type="text" name="mailrelay_key" size="50" value="{$mailrelay_key|escape}" /></div>
+                <label style="width:60px">{$lang.key}:</label> <div style="padding-left:80px"><input type="text" name="mailrelay_key" size="50" value="{$mailrelay_key|escape}" autocomplete="off" /></div>
                 <br />
                 <input type="submit" value="{$lang.save}" style="padding:5px" />
             </div>
