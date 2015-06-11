@@ -302,7 +302,7 @@ class AdminMailRelay extends ModuleAdminController {
         $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSLVERSION => 3));
 
         $client = new Zend_Http_Client($uri, $config);
-        $client->setHeaders('X-Request-Origin: Prestashop|1.11|'. _PS_VERSION_);
+        $client->setHeaders('X-Request-Origin: Prestashop|1.3|'. _PS_VERSION_);
 
         $params['function'] = $function;
         $params['apiKey'] = $apiKey;
