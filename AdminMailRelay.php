@@ -134,7 +134,7 @@ class AdminMailRelay extends ModuleAdminController {
             $response->customersCount = $_SESSION['customersCount'];
 
             $data->mailrelay_group;
-            //$sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 1";// debug mode
+            
             $sql = "SELECT * FROM `{$db_prefix}customer` WHERE `newsletter` = 1 LIMIT {$start}, 10";
             $rowset = Db::getInstance()->executeS($sql);
             if (!empty($rowset)) {
