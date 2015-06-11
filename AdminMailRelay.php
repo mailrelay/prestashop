@@ -165,9 +165,8 @@ class AdminMailRelay extends ModuleAdminController {
                         } else {
                             $params['id'] = $result['data'][0]['id'];
                             $params['name'] = $name;
-                            $params['groups'] = array(
-                                    $group
-                           );
+                            $params['groups'] = array_merge(array($group), $result['data'][0]['groups']);
+
                             $result = $this->_execute($credential['hostname'], $credential['key'], 'updateSubscriber', $params);
 
                             if ($result && 1 == $result['status'])
