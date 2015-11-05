@@ -299,7 +299,7 @@ class AdminMailRelay extends ModuleAdminController {
         $uri = Zend_Uri_Http::fromString('https://example.com/ccm/admin/api/version/2/&type=json');
         $uri->setHost($hostname);
 
-        $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSLVERSION => 3));
+        $config = array('adapter' => 'Zend_Http_Client_Adapter_Curl', 'curloptions' => array(CURLOPT_SSL_VERIFYPEER => false));
 
         $client = new Zend_Http_Client($uri, $config);
         $client->setHeaders('X-Request-Origin: Prestashop|1.3|'. _PS_VERSION_);
