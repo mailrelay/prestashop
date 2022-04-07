@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{mailrelay}prestashop>mailrelay_3ea6ae29837288ee7a1222527e3b1755'] = 'Mailrelay';
 $_MODULE['<{mailrelay}prestashop>mailrelay_b7c7d99c8b3bedab610be0bb26be1f2e'] = 'Sincronize seus usuários WordPress com Mailrelay';
 $_MODULE['<{mailrelay}prestashop>mailrelay_876f23178c29dc2552c0b48bf23cd9bd'] = 'Tem certeza que deseja desinstalar?';

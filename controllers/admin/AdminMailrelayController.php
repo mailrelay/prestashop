@@ -23,20 +23,19 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
 class AdminMailrelayController extends ModuleAdminController
 {
-
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         global $cookie;
-       
+
         $tab = 'AdminModules&configure=mailrelay';
-        $token = Tools::getAdminToken('AdminModules'.(int)(Tab::getIdFromClassName('AdminModules')).(int)$this->context->employee->id);
+        $token = Tools::getAdminToken('AdminModules' . (int) (Tab::getIdFromClassName('AdminModules')) . (int) $this->context->employee->id);
         Tools::redirectAdmin('index.php?controller=' . $tab . '&token=' . $token);
     }
 
-    public function getContent() { }
-    
- 
+    public function getContent()
+    {
+    }
 }
