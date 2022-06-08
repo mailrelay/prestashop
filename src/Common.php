@@ -54,21 +54,44 @@ class Common
 
     public function mailrelayNewUser($params)
     {
-        $newsletter = $params['newCustomer']->newsletter;
-
-        if (1 != Configuration::get('MAILRELAY_AUTO_SYNC') || 1 != $newsletter) {
-            // Autosync isn't enabled or the client doesn't subscribed
+        $newsletter = $params->newsletter;
+        if (1 != (int) Configuraton::get('MAILRELAY_AUTO_SYNC')) {
             return;
         }
 
         $user = [
-            'email' => $params['newCustomer']->email,
-            'firstname' => $params['newCustomer']->firstname,
-            'lastname' => $params['newCustomer']->lastname,
+            'email' => $params->email,
+            'firstname' => $params->firstname,
+            'lastname' => $params->lastname,
         ];
 
         $groups = unserialize(Configuration::get('MAILRELAY_GROUPS_SYNC'));
+        if (!empty($groups)) {
+            try {
+                $mailrelayApi = new MailrelayApi();
+                $data = $mailrelayApi->mailrelay_data();
+                $mailrelayApi->mailrelay_sync_user($user, $groups, $data);
+            } catch (Exception $e) {
+                // Ignore if something goes wrong to avoid showing errors to user
+            }
+        }
+    }
 
+    public function mailrelayUpdateUser($params)
+    {
+        $newsletter = $params->newsletter;
+        if (1 != (int) Configuration::get('MAILRELAY_AUTO_SYNC') || $newsletter == false) {
+            // Autosync isn't enabled
+            return;
+        }
+
+        $user = [
+            'email' => $params->email,
+            'firstname' => $params->firstname,
+            'lastname' => $params->lastname,
+        ];
+
+        $groups = unserialize(Configuration::get('MAILRELAY_GROUPS_SYNC'));
         if (!empty($groups)) {
             try {
                 $mailrelayApi = new MailrelayApi();
