@@ -55,7 +55,7 @@ class Mailrelay extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Mailrelay');
-        $this->description = $this->l('Syncronize your PrestaShop users with Mailrelay.');
+        $this->description = $this->l('Synchronize your PrestaShop users with Mailrelay.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
@@ -77,9 +77,6 @@ class Mailrelay extends Module
 
     public function uninstall()
     {
-        Configuration::deleteByName('mailrelay');
-        // unregister hook
-
         if (parent::uninstall()
         && $this->unregisterHook('leftColumn')
         && $this->unregisterHook('displayBackOfficeHeader')
@@ -120,36 +117,30 @@ class Mailrelay extends Module
 
         $output = '';
 
-        // this part is executed only when the authentication is submitted
-        if (Tools::isSubmit('submitAuthentication' . $this->name)) {
-            $refresh = Tools::getValue('refresh_button');
-            $tab_selector = Tools::getValue('TAB_SELECTOR');
+        if (Tools::isSubmit('mailrelay_submit')) {
+            $selected_tab = Tools::getValue('mailrelay_selected_tab', 'authentication');
 
-            if ($refresh == 'Manual Sync' || $refresh == 'Settings') {
-                $output .= $this->displayConfirmation($this->l('Groups Synced'));
-            } else {
-                if ($tab_selector == 'Authentication' || $tab_selector == '') {
-                    $data = $this->authenticationContent();
-                    $output .= $data['output'];
-                    $mailrelay_data = $data['mailrelay_data'];
-                    $ping_response_code = $data['ping_response_code'];
-                }
+            if ($selected_tab == 'authentication') {
+                $data = $this->authenticationContent();
+                $output .= $data['output'];
+                $mailrelay_data = $data['mailrelay_data'];
+                $ping_response_code = $data['ping_response_code'];
+            } elseif ($mailrelay_data) {
+                // Only process other actions if api key is set
 
-                if ($tab_selector == 'Settings') {
+                if ($selected_tab == 'settings') {
                     if (true == Tools::getValue('MAILRELAY_AUTO_SYNC')) {
                         if (empty(Tools::getValue('MAILRELAY_GROUPS_SYNC'))) {
-                            $output .= $this->displayError($this->l('Please select at least one group to syncronize.'));
+                            $output .= $this->displayError($this->l('Please select at least one group to synchronize.'));
                         } else {
                             $output .= $this->settingsContent();
                         }
                     } else {
                         $output .= $this->settingsContent();
                     }
-                }
-
-                if ($tab_selector == 'Manual Sync') {
+                } elseif ($selected_tab == 'manual_sync') {
                     if (empty(Tools::getValue('GROUPS'))) {
-                        $output .= $this->displayError($this->l('Please select at least one group to syncronize.'));
+                        $output .= $this->displayError($this->l('Please select at least one group to synchronize.'));
                     } else {
                         $output .= $this->manualContent();
                     }
@@ -170,6 +161,38 @@ class Mailrelay extends Module
         return $_html;
     }
 
+    public function authenticationFormFields() {
+        return [
+            [
+                'col' => 4,
+                'type' => 'text',
+                'label' => $this->l('Account'),
+                'name' => 'MAILRELAY_ACCOUNT',
+                'suffix' => '.ipzmarketing.com',
+                'tab' => 'authentication',
+                'size' => 20,
+                'required' => true,
+                'desc' => $this->l('Login using your Mailrelay account name.'),
+            ],
+            [
+                'col' => 4,
+                'type' => 'text',
+                'label' => $this->l('API Key'),
+                'name' => 'MAILRELAY_API_KEY',
+                'tab' => 'authentication',
+                'size' => 20,
+                'required' => true,
+                'autocomplete' => false,
+                'desc' => $this->l('Your API Key can be found or generated at your Mailrelay Account -> Settings -> API Access.'),
+            ],
+            [
+                'type' => 'hidden',
+                'name' => 'mailrelay_selected_tab',
+                'id' => 'mailrelay_selected_tab',
+            ],
+        ];
+    }
+
     // Generate the Authentication Form
     public function displayForm($only_auth = false)
     {
@@ -182,37 +205,27 @@ class Mailrelay extends Module
                     'title' => $this->l('Settings'),
                     'icon' => 'icon-cogs',
                 ],
-                'input' => [
-                    [
-                        'col' => 4,
-                        'type' => 'text',
-                        'label' => $this->l('Account'),
-                        'name' => 'MAILRELAY_ACCOUNT',
-                        'tab' => 'authentication',
-                        'prefix' => '<i class="icon icon-tag"></i>',
-                        'size' => 20,
-                        'required' => true,
-                        'desc' => $this->l('Login using your Mailrelay account name.'),
+                'input' => $this->authenticationFormFields(),
+                'buttons' => [
+                    'authentication' => [
+                        'type' => 'submit',
+                        'name' => 'authentication_button',
+                        'id' => 'authentication_button',
+                        'js' => "document.getElementById('mailrelay_selected_tab').value = 'authentication",
+                        'title' => $this->l('Save'),
+                        'class' => 'btn btn-default pull-right mailrelay_submit_buttons',
                     ],
-                    [
-                        'col' => 4,
-                        'type' => 'text',
-                        'label' => $this->l('API Key'),
-                        'prefix' => '<i class="icon icon-puzzle-piece"></i>',
-                        'name' => 'MAILRELAY_API_KEY',
-                        'tab' => 'authentication',
-                        'size' => 20,
-                        'required' => true,
-                        'desc' => $this->l('Your API Key can be found or generated at your Mailrelay Account -> Settings -> API Access.'),
-                    ],
-            ], 'submit' => [
+                ],
+                'submit' => [
                     'title' => $this->l('Save'),
                     'class' => 'btn btn-large btn-default pull-right',
-                ], ];
+                ],
+            ];
 
-            $helper = $this->generateHelperForm('submitAuthentication');
+            $helper = $this->generateHelperForm();
 
             // Load current value into the form
+            $helper->fields_value['mailrelay_selected_tab'] = 'authentication';
             $helper->fields_value['MAILRELAY_ACCOUNT'] = Tools::getValue('MAILRELAY_ACCOUNT', Configuration::get('MAILRELAY_ACCOUNT'));
             $helper->fields_value['MAILRELAY_API_KEY'] = Tools::getValue('MAILRELAY_API_KEY', Configuration::get('MAILRELAY_API_KEY'));
 
@@ -245,34 +258,7 @@ class Mailrelay extends Module
                 'title' => $this->l('Settings'),
                 'icon' => 'icon-cogs',
             ],
-            'input' => [
-                [
-                    'type' => 'hidden',
-                    'name' => 'TAB_SELECTOR',
-                    'tab' => 'authentication',
-                ],
-                [
-                    'col' => 4,
-                    'type' => 'text',
-                    'label' => $this->l('Account'),
-                    'name' => 'MAILRELAY_ACCOUNT',
-                    'tab' => 'authentication',
-                    'prefix' => '<i class="icon icon-tag"></i>',
-                    'size' => 20,
-                    'required' => true,
-                    'desc' => $this->l('Login using your Mailrelay account name.'),
-                ],
-                [
-                    'col' => 4,
-                    'type' => 'text',
-                    'label' => $this->l('API Key'),
-                    'prefix' => '<i class="icon icon-puzzle-piece"></i>',
-                    'name' => 'MAILRELAY_API_KEY',
-                    'tab' => 'authentication',
-                    'size' => 20,
-                    'required' => true,
-                    'desc' => $this->l('Your API Key can be found or generated at your Mailrelay Account -> Settings -> API Access.'),
-                ],
+            'input' => array_merge($this->authenticationFormFields(), [
                 [
                     'type' => 'switch',
                     'label' => $this->l('Automatically sync new users with Mailrelay'),
@@ -323,19 +309,32 @@ class Mailrelay extends Module
                         'name' => 'name',
                     ],
                 ],
-            ],
+            ]),
             'buttons' => [
-                'testing' => [
+                'authentication' => [
                     'type' => 'submit',
-                    'name' => 'refresh_button',
-                    'value' => 2,
-                    'val' => 2,
-                    'id' => 'refresh_button',
-                    'tab' => 'settings',
-                    'title' => $this->l('Refresh Groups'),
-                    'icon' => 'icon-reset',
-                    'class' => 'btn btn-default pull-right',
+                    'name' => 'authentication_button',
+                    'id' => 'authentication_button',
+                    'js' => "document.getElementById('mailrelay_selected_tab').value = 'authentication",
+                    'title' => $this->l('Save'),
+                    'class' => 'btn btn-default pull-right mailrelay_submit_buttons',
                 ],
+                'settings' => [
+                    'type' => 'submit',
+                    'name' => 'settings_button',
+                    'id' => 'settings_button',
+                    'js' => "document.getElementById('mailrelay_selected_tab').value = 'settings",
+                    'title' => $this->l('Save settings'),
+                    'class' => 'btn btn-default pull-right mailrelay_submit_buttons',
+                ],
+                'manual_sync' => [
+                    'type' => 'submit',
+                    'name' => 'manual_sync_button',
+                    'id' => 'manual_sync_button',
+                    'js' => "document.getElementById('mailrelay_selected_tab').value = 'manual_sync",
+                    'title' => $this->l('Sync'),
+                    'class' => 'btn btn-default pull-right mailrelay_submit_buttons',
+                ]
             ],
             'submit' => [
                 'title' => $this->l('Save'),
@@ -343,10 +342,10 @@ class Mailrelay extends Module
             ],
         ];
 
-        $helper = $this->generateHelperForm('submitAuthentication');
+        $helper = $this->generateHelperForm();
 
         // Load current value into the form
-        $helper->fields_value['TAB_SELECTOR'] = Tools::getValue('TAB_SELECTOR', Configuration::get('TAB_SELECTOR'));
+        $helper->fields_value['mailrelay_selected_tab'] = Tools::getValue('mailrelay_selected_tab', 'authentication');
         $helper->fields_value['MAILRELAY_ACCOUNT'] = Tools::getValue('MAILRELAY_ACCOUNT', Configuration::get('MAILRELAY_ACCOUNT'));
         $helper->fields_value['MAILRELAY_API_KEY'] = Tools::getValue('MAILRELAY_API_KEY', Configuration::get('MAILRELAY_API_KEY'));
         $helper->fields_value['MAILRELAY_AUTO_SYNC'] = Tools::getValue('MAILRELAY_AUTO_SYNC', Configuration::get('MAILRELAY_AUTO_SYNC'));
@@ -357,7 +356,7 @@ class Mailrelay extends Module
         return $helper->generateForm($this->fields_form);
     }
 
-    public function generateHelperForm($submit_action)
+    public function generateHelperForm()
     {
         $helper = new HelperForm();
         $helper->show_toolbar = false;
@@ -367,7 +366,7 @@ class Mailrelay extends Module
         $helper->identifier = $this->identifier;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-        $helper->submit_action = $submit_action . $this->name;
+        $helper->submit_action = 'mailrelay_submit';
         // Default language
         $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
 
@@ -401,8 +400,8 @@ class Mailrelay extends Module
             $output = $this->displayError($this->l('Invalid Configuration value'));
         } elseif (204 !== $ping_response_code) {
             $mailrelay_data = null;
-            // invalid value of accout or api key, show an error
-            $output = $this->displayError($this->l("The API key or Account wasn't sent or is invalid"));
+            // invalid value of account or api key, show an error
+            $output = $this->displayError($this->l("The API key or account are invalid"));
         } else {
             // value is ok, update it and display a confirmation message
             Configuration::updateValue('MAILRELAY_ACCOUNT', $mailrelay_data['host']);
@@ -410,7 +409,6 @@ class Mailrelay extends Module
             $output = $this->displayConfirmation($this->l('Account and API Key updated'));
         }
 
-        $authentication = [];
         $authentication = [
             'mailrelay_data' => $mailrelay_data,
             'ping_response_code' => $ping_response_code,
@@ -420,7 +418,7 @@ class Mailrelay extends Module
         return $authentication;
     }
 
-    // Brings the result of the Manual Sinc.
+    // Brings the result of the Manual Sync.
     public function manualContent()
     {
         $common = new Common();
@@ -447,9 +445,9 @@ class Mailrelay extends Module
             }
         }
 
-        $confirmation_output = '<p>' . sprintf($this->l('Users Created: %d;'), $added) . '</p>';
-        $confirmation_output .= '<p>' . sprintf($this->l('Users Updated: %d;'), $updated) . '</p>';
-        $confirmation_output .= '<p>' . sprintf($this->l('Users Failed: %d;'), $failed) . '</p>';
+        $confirmation_output = '<p>' . sprintf($this->l('Created subscribers: %d'), $added) . '</p>';
+        $confirmation_output .= '<p>' . sprintf($this->l('Updated subscribers: %d'), $updated) . '</p>';
+        $confirmation_output .= '<p>' . sprintf($this->l('Failed subscribers: %d'), $failed) . '</p>';
         $output = $this->displayConfirmation($confirmation_output);
 
         return $output;

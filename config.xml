@@ -3,7 +3,7 @@
     <name>mailrelay</name>
     <displayName><![CDATA[Mailrelay]]></displayName>
     <version><![CDATA[2.0-beta]]></version>
-    <description><![CDATA[Syncronize your PrestaShop users with Mailrelay.]]></description>
+    <description><![CDATA[Synchronize your PrestaShop users with Mailrelay.]]></description>
     <author><![CDATA[Mailrelay]]></author>
     <tab><![CDATA[advertising_marketing]]></tab>
 	<confirmUninstall><![CDATA[Are you sure you want to uninstall?]]></confirmUninstall>

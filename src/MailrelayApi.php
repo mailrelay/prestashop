@@ -116,20 +116,17 @@ class MailrelayApi
             $mailrelay_data = $this->mailrelay_data();
         }
 
-        if (null === $user['firstname'] && null === $user['lastname']) {
-            $full_name = null;
-        } else {
-            $full_name = $user['firstname'] . ' ' . $user['lastname'];
-        }
-
         $data = [
             'email' => $user['email'],
-            'name' => $full_name,
             'replace_groups' => false,
             'restore_if_deleted' => false,
             'status' => 'active',
             'group_ids' => $groups,
         ];
+
+        if (!empty($user['firstname']) || !empty($user['lastname'])) {
+            $data['name'] = $user['firstname'] . ' ' . $user['lastname'];
+        }
 
         $data = json_encode($data);
 
