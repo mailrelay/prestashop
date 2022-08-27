@@ -43,7 +43,7 @@ class Mailrelay extends Module
     {
         $this->name = 'mailrelay';
         $this->tab = 'advertising_marketing';
-        $this->version = '2.0-beta';
+        $this->version = '2.0-beta.2';
         $this->author = 'Mailrelay';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [

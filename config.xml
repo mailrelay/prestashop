@@ -2,7 +2,7 @@
 <module>
     <name>mailrelay</name>
     <displayName><![CDATA[Mailrelay]]></displayName>
-    <version><![CDATA[2.0-beta]]></version>
+    <version><![CDATA[2.0-beta.2]]></version>
     <description><![CDATA[Synchronize your PrestaShop users with Mailrelay.]]></description>
     <author><![CDATA[Mailrelay]]></author>
     <tab><![CDATA[advertising_marketing]]></tab>
